@@ -9,7 +9,7 @@ contract ClassRegister {
         _admin = msg.sender;
     }
 
-    function registerClass(address address_) public {
+    function register(address address_) public {
         require(_admin == msg.sender, "Unauthorized");
         _classes[address_] = true;
     }
