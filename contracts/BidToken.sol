@@ -37,9 +37,13 @@ contract BidToken is ERC20("BidToken", "BT") {
         address from,
         address to,
         uint256 amount
-    ) internal override {
+    ) internal virtual override {
+        super._beforeTokenTransfer(from, to, amount);
         require(
-            _classRegister.isRegistered(to) || _classRegister.isRegistered(from)
+            _classRegister.isRegistered(to) ||
+                _classRegister.isRegistered(from) ||
+                from == address(0), // mint
+            "Invalid address"
         );
     }
 }
