@@ -44,7 +44,7 @@ contract InstructionalClass {
         } else {
             uint256 diff = amount - currentAmount;
             uint256 allowance = _bidToken.allowance(msg.sender, address(this));
-            require(allowance > diff, "Insufficient funds allowed");
+            require(allowance >= diff, "Insufficient funds allowed");
             _bidToken.transferFrom(msg.sender, address(this), diff);
             _bids[msg.sender] = diff;
 
