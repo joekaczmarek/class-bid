@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.6.0 <0.8.0;
 
-contract ClassRegister {
+contract CourseRegister {
     address public _admin;
-    mapping(address => bool) public _classes;
+    mapping(address => bool) public _courses;
 
     constructor() public {
         _admin = msg.sender;
@@ -11,10 +11,10 @@ contract ClassRegister {
 
     function register(address address_) public {
         require(_admin == msg.sender, "Unauthorized");
-        _classes[address_] = true;
+        _courses[address_] = true;
     }
 
     function isRegistered(address address_) public view returns (bool) {
-        return _classes[address_];
+        return _courses[address_];
     }
 }

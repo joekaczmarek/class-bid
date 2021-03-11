@@ -2,19 +2,19 @@
 pragma solidity >=0.6.0 <0.8.0;
 
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
-import "./ClassRegister.sol";
+import "./CourseRegister.sol";
 
 contract BidToken is ERC20("BidToken", "BT") {
     uint256 public _initialBidPoints;
-    ClassRegister public _classRegister;
+    CourseRegister public _courseRegister;
 
     mapping(address => string) private nameRegister;
 
-    constructor(uint256 initialBidPoints_, ClassRegister classRegister_)
+    constructor(uint256 initialBidPoints_, CourseRegister courseRegister_)
         public
     {
         _initialBidPoints = initialBidPoints_;
-        _classRegister = classRegister_;
+        _courseRegister = courseRegister_;
         _setupDecimals(0);
     }
 
@@ -40,8 +40,8 @@ contract BidToken is ERC20("BidToken", "BT") {
     ) internal virtual override {
         super._beforeTokenTransfer(from, to, amount);
         require(
-            _classRegister.isRegistered(to) ||
-                _classRegister.isRegistered(from) ||
+            _courseRegister.isRegistered(to) ||
+                _courseRegister.isRegistered(from) ||
                 from == address(0), // mint
             "Invalid address"
         );

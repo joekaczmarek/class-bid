@@ -3,7 +3,7 @@ pragma solidity >=0.6.0 <0.8.0;
 
 import "./BidToken.sol";
 
-contract InstructionalClass {
+contract Course {
     address public _admin;
 
     BidToken public _bidToken;

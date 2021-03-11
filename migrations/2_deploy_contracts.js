@@ -1,11 +1,11 @@
-var ClassRegister = artifacts.require("ClassRegister");
+var CourseRegister = artifacts.require("CourseRegister");
 var BidToken = artifacts.require("BidToken");
-var InstructionalClass = artifacts.require("InstructionalClass");
+var Course = artifacts.require("Course");
 
 module.exports = function (deployer) {
-    deployer.deploy(ClassRegister).then(function () {
-        return deployer.deploy(BidToken, 2000, ClassRegister.address).then(function () {
-            return deployer.deploy(InstructionalClass, BidToken.address, "LAWSTUDY 100", 5, 30);
+    deployer.deploy(CourseRegister).then(function () {
+        return deployer.deploy(BidToken, 2000, CourseRegister.address).then(function () {
+            return deployer.deploy(Course, BidToken.address, "LAWSTUDY 100", 5, 30);
         });
     });
 };
