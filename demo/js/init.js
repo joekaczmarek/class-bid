@@ -1,8 +1,9 @@
 web3Provider = null;
 contracts = {};
 account = null;
+courses = null;
 
-$(window).on('load', function () {
+function init() {
     web3Provider = new Web3.providers.HttpProvider('http://127.0.0.1:7545');
     web3 = new Web3(web3Provider);
 
@@ -11,8 +12,8 @@ $(window).on('load', function () {
         account = web3.eth.accounts.privateKeyToAccount(privateKey);
 
     var abis = {};
-    var courses = null;
     var addresses = null;
+    contracts['courses'] = {};
 
     var loadJSONPromises = [];
 
@@ -32,7 +33,7 @@ $(window).on('load', function () {
         addresses = data;
     }));
 
-    Promise.all(loadJSONPromises).then(function () {
+    return Promise.all(loadJSONPromises).then(function () {
         var BidToken = new web3.eth.Contract(abis['BidToken'], addresses['BidToken']);
         if (account != null)
             BidToken.defaultAccount = account.address;
@@ -42,10 +43,10 @@ $(window).on('load', function () {
             var Course = new web3.eth.Contract(abis['Course'], addresses['courses'][courseData.name]);
             if (account != null)
                 Course.defaultAccount = account.address;
-            contracts[courseData.name] = Course;
+            contracts['courses'][courseData.name] = Course;
         });
     });
-});
+}
 
 // for demo purposes, provides account with ether for transactions
 function initAccountBalance(user_account) {
@@ -60,6 +61,17 @@ function initAccountBalance(user_account) {
             console.log("iab result", result);
         });
     });
+}
+
+function sendSignedTransactionFromData(user_account, contract_address, data) {
+    const tx = {
+        from: user_account.address,
+        to: contract_address,
+        gas: 2000000,
+        data: data
+    };
+    // console.log(tx);
+    return sendSignedTransaction(account, tx);
 }
 
 function sendSignedTransaction(user_account, tx) {

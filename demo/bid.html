@@ -2,24 +2,172 @@
 <html>
 
 <head>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/normalize.css" />
+    <title>Class Bid - Bidding</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/spcss@0.6.0" />
 
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsrender@1.0.11/jsrender.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/web3@1.3.4/dist/web3.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/js-cookie@rc/dist/js.cookie.min.js"></script>
+
+    <style>
+        #bid_table {
+            width: 100%;
+        }
+
+        #bc_log {
+            height: 125px;
+            width: 100%;
+            overflow-y: auto;
+            border: thin solid #999;
+            padding: 0.3em 0.4em;
+            font-size: 0.85em;
+            font-family: monospace;
+        }
+    </style>
 </head>
 
 <body>
     <h1>Class Bid</h1>
     <h2 id="student_name">Student Name</h2>
+    <p>Unused Bid Points: <span id="unused_bid_points"></span>
+    </p>
 
-    <form>
+    <form id="bid_form">
+        <table id="bid_table">
+
+        </table>
+        <br>
+        <input type="submit" value="Submit">
     </form>
+
+    <table id="results_table">
+
+    </table>
+
+    <h2>Log</h2>
+    <div id="bc_log"></div>
 
     <script src="js/init.js"></script>
     <script>
-        $(document).ready(function () {
+        function logToPage() {
+            var msg = Array.prototype.slice.call(arguments).join(' ');
+            var msgEl = $("<div></div>");
+            msgEl.text(msg);
 
+            var bcLog = $('#bc_log');
+            bcLog.append(msgEl);
+            bcLog.scrollTop(bcLog.height());
+        }
+
+        function getUnusedBidPoints() {
+            const BidToken = contracts['BidToken'];
+            return BidToken.methods.balanceOf(account.address).call();
+        }
+
+        function renderUnusedBidPoints(unusedBidPoints) {
+            $('#unused_bid_points').text(unusedBidPoints);
+        }
+
+        function getAndRenderUnusedBidPoints() {
+            return getUnusedBidPoints().then(result => renderUnusedBidPoints(result));
+        }
+
+        function getCurrentBids() {
+            var result = Promise.all(courses.map(element => {
+                const courseContract = contracts['courses'][element['name']];
+                return courseContract.methods.getBid().call().then(result => {
+                    element['current'] = parseInt(result);
+                    return Promise.resolve(element);
+                });
+            }));
+            return result;
+        }
+
+        const bidTableTmpl = $.templates(`
+            <tr>
+                <th>{{:name}}</th>
+                <th>{{:current}}</th>
+                <th><input type=\"text\" name=\"{{:name}}\"></th>
+            </tr>`);
+
+        function renderBidTable(currentBids) {
+            $('#bid_table').html(`
+            <tr>
+                <th>Class</th>
+                <th>Current Bid</th>
+                <th>New Bid</th>
+            </tr>`);
+
+            currentBids.forEach(rowData => {
+                $('#bid_table tr:last').after(bidTableTmpl.render(rowData));
+            });
+        }
+
+        function getAndRenderBidTable() {
+            getCurrentBids().then(result => renderBidTable(result));
+        }
+
+        $(document).ready(function () {
+            init().then(function () {
+                if (account == null) {
+                    $(location).attr('href', 'index.html');
+                }
+
+                const BidToken = contracts['BidToken'];
+                console.log(BidToken);
+
+                BidToken.methods.isRegistered().call({ from: account.address }).then(result => {
+                    $('#student_name').text(result);
+                });
+
+                $('#bid_form').on('submit', function (e) {
+                    e.preventDefault();
+                    var newBids = $('#bid_table input').toArray().map(function (element) {
+                        if (element.value != "" && !isNaN(element.value)) {
+                            return parseInt(element.value);
+                        }
+                        return 0;
+                    });
+
+                    getCurrentBids().then(currentClassInfo => {
+                        currentClassInfo.forEach(function (info, index) {
+                            var bidList = [];
+                            if (newBids[index] > 0 && newBids[index] != info['current']) {
+                                bidList.push(index);
+                            }
+
+                            return Promise.all(bidList.map(index => {
+                                const courseName = currentClassInfo[index]['name'];
+                                const contract = contracts['courses'][courseName];
+                                const bidAmount = newBids[index];
+
+                                console.log("Bidding", courseName, bidAmount);
+
+                                return sendSignedTransactionFromData(account, BidToken._address,
+                                    BidToken.methods.approve(contract._address, bidAmount).encodeABI())
+                                    .then(approveResult => {
+                                        console.log(approveResult);
+                                        return sendSignedTransactionFromData(account, contract._address,
+                                            contract.methods.bid(bidAmount).encodeABI()).then(bidResult => {
+                                                console.log("Bid result", bidResult);
+                                                logToPage("[tx " + bidResult['transactionHash'] + "]",
+                                                    "[block " + bidResult['blockNumber'] + "]", "bid", bidAmount);
+
+                                                getAndRenderUnusedBidPoints();
+                                                getAndRenderBidTable();
+                                            });
+                                    });
+                            }));
+                        });
+                    });
+
+                    // renderBidTable();
+                });
+
+                getAndRenderUnusedBidPoints();
+                getAndRenderBidTable();
+            });
         });
     </script>
 </body>

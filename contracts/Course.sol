@@ -55,6 +55,10 @@ contract Course {
         }
     }
 
+    function getBid() public view returns (uint256) {
+        return _bids[msg.sender];
+    }
+
     function reclaim() public {
         uint256 amount = _return[msg.sender];
         require(amount > 0, "No tokens to reclaim");
