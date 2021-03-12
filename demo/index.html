@@ -22,12 +22,7 @@
     <script src="js/init.js"></script>
     <script>
         $(document).ready(function () {
-
-            // check if already registered
-            var privateKey = Cookies.get("private-key");
-            console.log(privateKey);
-
-            if (privateKey != null) {
+            if (account != null) {
                 $(location).attr('href', 'bid.html');
             }
             else {

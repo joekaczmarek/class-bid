@@ -1,3 +1,5 @@
 node_modules
 build
 demo/abi/*
+demo/data/*
+demo-data/contract-addresses.json

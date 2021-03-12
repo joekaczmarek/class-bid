@@ -1,0 +1,27 @@
+[
+    {
+        "name": "BUSCOM 510 Contracts",
+        "min_students": 5,
+        "max_students": 20
+    },
+    {
+        "name": "PPTYTORT 530 Property",
+        "min_students": 5,
+        "max_students": 20
+    },
+    {
+        "name": "CONPUB 500 Constitutional Law",
+        "min_students": 5,
+        "max_students": 50
+    },
+    {
+        "name": "LITARB 650 Civil Procedure II",
+        "min_students": 5,
+        "max_students": 50
+    },
+    {
+        "name": "LAWSTUDY 700 Underwater Basket Weaving",
+        "min_students": 5,
+        "max_students": 50
+    }
+]
