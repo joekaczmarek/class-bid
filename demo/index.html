@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/normalize.css" />
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.3.4/dist/web3.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@rc/dist/js.cookie.min.js"></script>
+</head>
+
+<body>
+    <h1>Class Bid</h1>
+    <h2>Register</h2>
+
+    <form id="register_form" style="display: none;">
+        <label>Name:</label>
+        <input type="text" id="student_name">
+        <input type="submit" value="Submit">
+    </form>
+
+    <script src="js/init.js"></script>
+    <script>
+        $(document).ready(function () {
+
+            // check if already registered
+            var privateKey = Cookies.get("private-key");
+            console.log(privateKey);
+
+            if (privateKey != null) {
+                $(location).attr('href', 'bid.html');
+            }
+            else {
+                $('#register_form').css('display', '');
+            }
+
+            // handle registration
+            $('#register_form').on('submit', function (e) {
+                e.preventDefault();
+                var student_name = $("#student_name").val();
+                var account = web3.eth.accounts.create();
+
+                console.log("New account", account);
+
+                const BidToken = contracts['BidToken'];
+
+                const iab = initAccountBalance(account);
+
+                const registerStudent = iab.then(result => {
+                    const data = BidToken.methods.register(student_name).encodeABI();
+                    console.log("data", data);
+                    const registerTx = {
+                        from: account.address,
+                        to: BidToken._address,
+                        gas: 2000000,
+                        data: data
+                    };
+                    return sendSignedTransaction(account, registerTx);
+                });
+
+                registerStudent.then(result => {
+                    console.log("Register transaction receipt", result);
+                    return BidToken.methods.isRegistered().call({ from: account.address }).then(result => {
+                        console.log(result);
+                    }).then(function () {
+                        Cookies.set("private-key", account.privateKey, { sameSite: 'strict' });
+                        $(location).attr('href', 'bid.html');
+                    });
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>

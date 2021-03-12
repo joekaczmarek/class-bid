@@ -1,21 +1,24 @@
 {
-  "name": "class-bid",
-  "version": "0.0.0",
-  "description": "",
-  "main": "truffle-config.js",
-  "directories": {
-    "test": "test"
-  },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "depot:/redstorage/git/class-bid.git"
-  },
-  "author": "",
-  "license": "MIT",
-  "dependencies": {
-    "openzeppelin-solidity": "^3.4.1"
-  }
+    "name": "class-bid",
+    "version": "0.0.0",
+    "description": "",
+    "main": "truffle-config.js",
+    "directories": {
+        "test": "test"
+    },
+    "scripts": {
+        "predemo": "node scripts/predemo.js",
+        "demo": "http-server -c-1 ./demo",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "depot:/redstorage/git/class-bid.git"
+    },
+    "author": "",
+    "license": "MIT",
+    "dependencies": {
+        "http-server": "^0.12.3",
+        "openzeppelin-solidity": "^3.4.1"
+    }
 }

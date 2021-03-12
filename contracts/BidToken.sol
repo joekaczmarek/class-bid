@@ -12,6 +12,7 @@ contract BidToken is ERC20("BidToken", "BT") {
 
     constructor(uint256 initialBidPoints_, CourseRegister courseRegister_)
         public
+        payable
     {
         _initialBidPoints = initialBidPoints_;
         _courseRegister = courseRegister_;
@@ -28,7 +29,7 @@ contract BidToken is ERC20("BidToken", "BT") {
         _mint(msg.sender, _initialBidPoints);
     }
 
-    function getRegistration() public view returns (string memory) {
+    function isRegistered() public view returns (string memory) {
         return nameRegister[msg.sender];
     }
 
