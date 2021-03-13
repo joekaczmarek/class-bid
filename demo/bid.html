@@ -11,6 +11,10 @@
     <script src="https://cdn.jsdelivr.net/npm/js-cookie@rc/dist/js.cookie.min.js"></script>
 
     <style>
+        body {
+            max-width: 50em;
+        }
+
         #bid_table {
             width: 100%;
         }
@@ -58,6 +62,13 @@
             var bcLog = $('#bc_log');
             bcLog.append(msgEl);
             bcLog.scrollTop(bcLog.height());
+        }
+
+        function logTransactionToPage(tx, contract_name, message) {
+            logToPage("[tx " + tx['transactionHash'] + "]",
+                "[block " + tx['blockNumber'] + "]",
+                "[" + contract_name + "]",
+                message);
         }
 
         function getUnusedBidPoints() {
@@ -112,6 +123,7 @@
             init().then(function () {
                 if (account == null) {
                     $(location).attr('href', 'index.html');
+                    return;
                 }
 
                 const BidToken = contracts['BidToken'];
@@ -127,44 +139,59 @@
                         if (element.value != "" && !isNaN(element.value)) {
                             return parseInt(element.value);
                         }
-                        return 0;
+                        return NaN;
                     });
+                    console.log(newBids);
 
+                    var oldBids = [];
+                    var bidList = [];
                     getCurrentBids().then(currentClassInfo => {
                         currentClassInfo.forEach(function (info, index) {
-                            var bidList = [];
-                            if (newBids[index] > 0 && newBids[index] != info['current']) {
+                            if (!isNaN(newBids[index]) && newBids[index] != info['current']) {
                                 bidList.push(index);
                             }
-
-                            return Promise.all(bidList.map(index => {
+                        });
+                        var presult = Promise.resolve();
+                        bidList.forEach(index => {
+                            presult = presult.then(() => {
                                 const courseName = currentClassInfo[index]['name'];
                                 const contract = contracts['courses'][courseName];
-                                const bidAmount = newBids[index];
+                                const newBid = newBids[index];
+                                const oldBid = currentClassInfo[index]['current'];
 
-                                console.log("Bidding", courseName, bidAmount);
+                                console.log("Bidding", courseName, newBid);
 
                                 return sendSignedTransactionFromData(account, BidToken._address,
-                                    BidToken.methods.approve(contract._address, bidAmount).encodeABI())
+                                    BidToken.methods.approve(contract._address, newBid).encodeABI())
                                     .then(approveResult => {
-                                        console.log(approveResult);
-                                        return sendSignedTransactionFromData(account, contract._address,
-                                            contract.methods.bid(bidAmount).encodeABI()).then(bidResult => {
-                                                console.log("Bid result", bidResult);
-                                                logToPage("[tx " + bidResult['transactionHash'] + "]",
-                                                    "[block " + bidResult['blockNumber'] + "]", "bid", bidAmount);
+                                        console.log("Approve", approveResult);
 
-                                                getAndRenderUnusedBidPoints();
-                                                getAndRenderBidTable();
+                                        return sendSignedTransactionFromData(account, contract._address,
+                                            contract.methods.bid(newBid).encodeABI()).then(bidResult => {
+                                                console.log("Bid", bidResult);
+                                                logTransactionToPage(bidResult, courseName, "bid " + newBid);
+
+                                                if (oldBid > newBid) {
+                                                    return sendSignedTransactionFromData(account, contract._address,
+                                                        contract.methods.reclaim().encodeABI()).then(reclaimResult => {
+                                                            console.log("Reclaim", reclaimResult);
+                                                            logTransactionToPage(reclaimResult, courseName, "reclaim " + (oldBid - newBid));
+
+                                                            getAndRenderUnusedBidPoints();
+                                                            getAndRenderBidTable();
+                                                        });
+                                                }
+                                                else {
+                                                    getAndRenderUnusedBidPoints();
+                                                    getAndRenderBidTable();
+                                                }
                                             });
                                     });
-                            }));
+                            });
                         });
+                        return presult;
                     });
-
-                    // renderBidTable();
                 });
-
                 getAndRenderUnusedBidPoints();
                 getAndRenderBidTable();
             });

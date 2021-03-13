@@ -78,9 +78,6 @@ function sendSignedTransaction(user_account, tx) {
     const signTx = web3.eth.accounts.signTransaction(tx, user_account.privateKey);
 
     return signTx.then(signedTx => {
-        console.log("rawTx", signedTx.rawTransaction);
-        return web3.eth.sendSignedTransaction(signedTx.rawTransaction).on('receipt', result => {
-            console.log("sendSignedTransaction result", result);
-        });
+        return web3.eth.sendSignedTransaction(signedTx.rawTransaction);
     });
 }

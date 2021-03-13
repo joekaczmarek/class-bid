@@ -39,14 +39,14 @@ contract Course {
 
             // revoke bid
             if (amount == 0) {
-                _bidCount = 0;
+                _bidCount -= 0;
             }
         } else {
             uint256 diff = amount - currentAmount;
             uint256 allowance = _bidToken.allowance(msg.sender, address(this));
             require(allowance >= diff, "Insufficient funds allowed");
             _bidToken.transferFrom(msg.sender, address(this), diff);
-            _bids[msg.sender] = diff;
+            _bids[msg.sender] = amount;
 
             // new bid
             if (currentAmount == 0) {
