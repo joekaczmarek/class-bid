@@ -175,8 +175,19 @@
         function bidsExceedBalance(oldBids, newBids) {
             return getBalance().then(balance => {
                 var total = parseInt(balance) + oldBids.reduce(sumIgnoreNaN);
-                var newSum = newBids.reduce(sumIgnoreNaN);
-                return newSum > total;
+
+                var postNewBids = [];
+                newBids.forEach(function (_, index) {
+                    if (!isNaN(newBids[index])) {
+                        postNewBids.push(newBids[index]);
+                    }
+                    else {
+                        postNewBids.push(oldBids[index]);
+                    }
+                });
+                var postNewBidsSum = postNewBids.reduce(sumIgnoreNaN);
+
+                return postNewBidsSum > total;
             });
         }
 
