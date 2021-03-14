@@ -34,7 +34,8 @@
 <body>
     <h1>Class Bid</h1>
     <h2 id="student_name">Student Name</h2>
-    <p>Unused Bid Points: <span id="unused_bid_points"></span>
+    <p><b>Address: </b><span id="blockchain_address"></span><br>
+        <b>Unused Bid Points: </b><span id="unused_bid_points"></span>
     </p>
 
     <form id="bid_form">
@@ -132,14 +133,13 @@
             </tr>`);
 
             currentBids.forEach(rowData => {
-                console.log(rowData);
                 $('#bid_table tr:last').after(bidTableTmpl.render(rowData));
             });
         }
 
         function getAndRenderBidTable() {
             getCurrentBids().then(result => {
-                console.log("result", result);
+                console.log("Current bids", result);
                 renderBidTable(result);
             });
         }
@@ -223,8 +223,9 @@
                     return;
                 }
 
+                $('#blockchain_address').text(account.address);
+
                 const BidToken = contracts['BidToken'];
-                console.log(BidToken);
 
                 BidToken.methods.isRegistered().call({ from: account.address }).then(result => {
                     $('#student_name').text(result);
@@ -238,7 +239,6 @@
                         }
                         return NaN;
                     });
-                    console.log(newBids);
 
                     getCurrentBids().then(currentClassInfo => {
                         var oldBids = [];
@@ -264,7 +264,6 @@
                 });
 
                 courses.map(course => {
-                    console.log(course);
                     var courseContract = contracts['courses'][course.name];
                     courseContract.once('BiddingEnded', function (error, event) {
                         logToPage("[" + course.name + "]", "bidding ended");
