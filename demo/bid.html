@@ -12,7 +12,7 @@
 
     <style>
         body {
-            max-width: 50em;
+            max-width: 55em;
         }
 
         #bid_table {
@@ -87,9 +87,28 @@
         function getCurrentBids() {
             var result = Promise.all(courses.map(element => {
                 const courseContract = contracts['courses'][element['name']];
+
                 return courseContract.methods.getBid().call().then(result => {
                     element['current'] = parseInt(result);
-                    return Promise.resolve(element);
+
+                    return courseContract.methods.bidEnded().call().then(ended => {
+                        if (ended) {
+                            return courseContract.methods.bidSuccess().call().then(result => {
+                                if (result) {
+                                    element['result'] = "Successful";
+                                }
+                                else {
+                                    element['result'] = "Unsuccessful";
+                                }
+                                return Promise.resolve(element);
+                            });
+                        }
+                        else {
+                            element['result'] = "Bidding in progress";
+                            return Promise.resolve(element);
+                        }
+                    });
+
                 });
             }));
             return result;
@@ -100,6 +119,7 @@
                 <th>{{:name}}</th>
                 <th>{{:current}}</th>
                 <th><input type=\"text\" name=\"{{:name}}\"></th>
+                <th>{{:result}}</th>
             </tr>`);
 
         function renderBidTable(currentBids) {
@@ -108,15 +128,20 @@
                 <th>Class</th>
                 <th>Current Bid</th>
                 <th>New Bid</th>
+                <th>Result</th>
             </tr>`);
 
             currentBids.forEach(rowData => {
+                console.log(rowData);
                 $('#bid_table tr:last').after(bidTableTmpl.render(rowData));
             });
         }
 
         function getAndRenderBidTable() {
-            getCurrentBids().then(result => renderBidTable(result));
+            getCurrentBids().then(result => {
+                console.log("result", result);
+                renderBidTable(result);
+            });
         }
 
         function executeBids(oldBids, newBids, courseNames) {
@@ -235,6 +260,16 @@
                                 });
                             }
                         });
+                    });
+                });
+
+                courses.map(course => {
+                    console.log(course);
+                    var courseContract = contracts['courses'][course.name];
+                    courseContract.once('BiddingEnded', function (error, event) {
+                        logToPage("[" + course.name + "]", "bidding ended");
+                        console.log(course.name, "bidding ended", error, event);
+                        getAndRenderBidTable();
                     });
                 });
 

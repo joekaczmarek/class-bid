@@ -4,7 +4,7 @@ account = null;
 courses = null;
 
 function init() {
-    web3Provider = new Web3.providers.HttpProvider('http://127.0.0.1:7545');
+    web3Provider = new Web3.providers.WebsocketProvider('ws://127.0.0.1:7545');
     web3 = new Web3(web3Provider);
 
     var privateKey = Cookies.get("private-key");

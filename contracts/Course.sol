@@ -19,7 +19,7 @@ contract Course {
     Bid[] public _sortedBids;
     mapping(address => uint256) public _return;
 
-    bool ended;
+    bool public bidEnded;
     event BiddingEnded();
 
     constructor(
@@ -33,8 +33,6 @@ contract Course {
         _name = name_;
         _minStudents = minStudents_;
         _maxStudents = maxStudents_;
-
-        ended = false;
     }
 
     function bid(uint256 amount) public {
@@ -136,14 +134,15 @@ contract Course {
         _bidToken.transfer(msg.sender, amount);
     }
 
-    function close() public {
+    function closeBidding() public {
         require(msg.sender == _admin, "Account unauthorized to close bidding");
-        ended = true;
+        require(!bidEnded, "Course bidding already ended");
+        bidEnded = true;
         emit BiddingEnded();
     }
 
     function bidSuccess() public view returns (bool) {
-        require(ended, "Bidding hasn't ended");
+        require(bidEnded, "Bidding hasn't ended");
         uint256 index = getBidIndexForAddress(msg.sender);
 
         if (index != _sortedBids.length && (index + 1) < _maxStudents) {
