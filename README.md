@@ -1,6 +1,6 @@
 # Class Bid
 
-Solidity smart contracts for implementing a university course bidding system.
+Proof of concept solidity smart contracts and demo webapp for implementing a university course bidding system.
 
 ## Architecture
 
